@@ -1,0 +1,248 @@
+---
+title: "Assignment 2"
+author: "JStanley"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+
+```{r}
+plasma<-read.table("C:/Users/Aidan/Desktop/RStudio/lectures/plasma_orig.txt", header=TRUE)
+colnames(plasma)
+summary(plasma)
+```
+```{r}
+plasma.mod<-lm(plasma~age, plasma)
+plot(plasma~age, plasma)
+abline(plasma.mod)
+summary(plasma.mod)
+anova(plasma.mod)
+
+resid<-residuals(plasma.mod)
+plot(plasma$age,resid)
+abline(h=0)
+```
+#Lack of fit test
+```{r}
+plasmaR.mod<-lm(plasma~age,plasma)
+plasmaF.mod<-lm(plasma~factor(age), plasma)
+anova(plasmaR.mod)
+anova(plasmaR.mod, plasmaF.mod) # lack of fit test
+```
+#Diagnostic
+```{r}
+shapiro.test(residuals(plasma.mod))
+qqnorm(residuals(plasma.mod))
+qqline(residuals(plasma.mod))
+library(ALSM)
+g<-rep(1,25)
+g[plasma$age==0]=0     #form two groups
+bftest(plasma.mod,g)
+g
+
+library(onewaytests)
+plasma$residual<-plasma.mod$residuals
+plasma$agef<-factor(plasma$age) #convert integer to factor type
+plasma$agef
+bf.test(residual~agef, plasma)   #the Brown-Forsythe test for constant variance
+```
+
+#Confidence interval band
+```{r}
+
+x<-data.frame(weight=unique(plasma$age))
+
+cim<-ci.reg(plasma.mod, x, type='m',alpha=0.05)
+cin<-ci.reg(plasma.mod, x, type='n',alpha=0.05)
+
+plot(plasma ~ age, plasma, main="Prediction Confidence Interval ")
+abline(plasma.mod)
+
+lines(cim$age, cim$Lower.Band,col="green", lwd=2, lty=1)
+lines(cim$age, cim$Upper.Band, col="green", lwd=2, lty=1)
+lines(cin$age, cin$Lower.Band,col="blue", lwd=2, lty=2)
+lines(cin$age, cin$Upper.Band, col="blue", lwd=2, lty=2)
+
+legend(x=2, y=20, legend=c("Predicting mean confidence band","Predicting individual confidence band"), lty=c(1,2), col=c("green","blue"),cex=0.8, bty="n")
+```
+
+#Diagnostic
+```{r}
+pu<-read.csv("C:/Users/Aidan/Desktop/RStudio/lectures/plutonium.csv", header=TRUE)
+pu.mod<-lm(alpha~plutonium, pu)
+
+plot(alpha~plutonium, pu)
+abline(pu.mod)
+identify(x, plot=TRUE)
+
+plot(pu.mod$residuals~plutonium,pu)
+abline(h=0)
+summary(pu.mod)
+anova(pu.mod)
+plot(pu.mod)
+```
+#Remove case 24
+```{r}
+pu<-pu[-24,]
+
+pu.mod<-lm(alpha~plutonium, pu)
+
+plot(alpha~plutonium, pu)
+abline(pu.mod)
+identify(x, plot=TRUE)
+
+plot(pu.mod$residuals~plutonium,pu)
+abline(h=0)
+summary(pu.mod)
+anova(pu.mod)
+plot(pu.mod)
+
+library(onewaytests)
+pu$residual<-pu.mod$residuals
+pu$x<-factor(pu$plutonium) #convert integer to factor type
+bf.test(residual~x, pu) 
+
+shapiro.test(pu$residual)
+```
+#Lack of fit test
+```{r}
+puR.mod<-lm(alpha~plutonium, pu)
+puF.mod<-lm(alpha~factor(plutonium), pu)
+anova(puR.mod)
+anova(puR.mod, puF.mod) # lack of fit test
+
+```
+#Confidene band
+```{r}
+x<-data.frame(plutonium=sort(unique(pu$plutonium)))
+cim<-ci.reg(pu.mod, x, type='m',alpha=0.05)
+cin<-ci.reg(pu.mod, x, type='n',alpha=0.05)
+
+
+plot(alpha ~ plutonium, pu, main="Confidence Bands")
+
+lines(cim$plutonium, cim$Lower.Band,col="green", lwd=2, lty=2)
+lines(cim$plutonium, cim$Upper.Band, col="green", lwd=2, lty=2)
+lines(cin$plutonium, cin$Lower.Band,col="blue", lwd=2, lty=3)
+lines(cin$plutonium, cin$Upper.Band, col="blue", lwd=2, lty=3)
+
+
+legend(x=0, y=0.12, legend=c("Predicting mean confidence band","Predicting individual confidence band"), lty=c(2,3), col=c("green","blue"),cex=0.8, bty="n")
+```
+# Box cox transformation, maximum likelihood
+
+```{r}
+
+library(MASS)
+bcmle<-boxcox(lm(plasma~age,data=plasma),lambda=seq(-3,3, by=0.1))
+lambda<-bcmle$x[which.max(bcmle$y)]
+lambda
+
+```
+```{r}
+a<-cbind(c(1,2),c(3,4))
+a
+b<-cbind(c(1,3),c(2,4))
+b
+a*b
+a%*%b
+
+```
+#Boxcox, Min SSE
+
+```{r}
+library(ALSM)
+bcsse<-boxcox.sse(plasma$age,plasma$plasma,l=seq(-2,2,0.1))
+lambda<-bcsse$lambda[which.min(bcsse$SSE)]
+lambda
+```
+
+#confidence band
+```{r}
+library(ALSM)
+
+plasma$ty<-1/sqrt(plasma$plasma)
+plasmaT.mod<-lm(ty~age, plasma)
+summary(plasmaT.mod)
+anova(plasmaT.mod)
+
+x<-data.frame(weight=unique(plasma$age))
+
+
+cim<-ci.reg(plasmaT.mod, x, type='m',alpha=0.05)
+cin<-ci.reg(plasmaT.mod, x, type='n',alpha=0.05)
+
+
+plot(ty ~ age, plasma, main="Confidence Bands before back transformation")
+
+lines(cim$age, cim$Lower.Band,col="green", lwd=2, lty=2)
+lines(cim$age, cim$Upper.Band, col="green", lwd=2, lty=2)
+lines(cin$age, cin$Lower.Band,col="blue", lwd=2, lty=3)
+lines(cin$age, cin$Upper.Band, col="blue", lwd=2, lty=3)
+
+
+legend(x=2, y=0.25, legend=c("Predicting mean confidence band","Predicting individual confidence band"), lty=c(2,3), col=c("green","blue"),cex=0.8, bty="n")
+```
+
+
+#CI after back trasformation
+```{r }
+library(ALSM)
+
+plasma$ty<-1/sqrt(plasma$plasma)
+plasmaT.mod<-lm(ty~age, plasma)
+
+
+plasmaT.mod$fitted.values<-plasmaT.mod$fitted.values^(-2)
+plasmaT.mod$fitted.values
+
+x<-data.frame(weight=unique(plasma$age))
+
+
+cim<-ci.reg(plasmaT.mod, x, type='m',alpha=0.05)
+cin<-ci.reg(plasmaT.mod, x, type='n',alpha=0.05)
+
+
+plot(plasma ~ age, plasma, main="Confidence Bands after back transformation")
+
+lines(cim$age, (cim$Lower.Band)^(-2),col="green", lwd=2, lty=2)
+lines(cim$age, (cim$Upper.Band)^(-2), col="green", lwd=2, lty=2)
+lines(cin$age, (cin$Lower.Band)^(-2),col="blue", lwd=2, lty=3)
+lines(cin$age, (cin$Upper.Band)^(-2), col="blue", lwd=2, lty=3)
+
+
+legend(x=2, y=15, legend=c("Predicting mean confidence band","Predicting individual confidence band"), lty=c(2,3), col=c("green","blue"),cex=0.8, bty="n")
+
+```
+#Bonferroni CI
+
+```{r}
+toluca<-read.table("C:/Users/Aidan/Desktop/RStudio/lectures/Toluca.txt", header=FALSE)
+colnames(toluca)<-c("size","hour")
+library(ALSM)
+toluca.mod<-lm(hour~size, data=toluca)
+toluca.mod$df.residual
+summary(toluca.mod)
+xbar<-mean(toluca$size)
+sd<-sd(toluca$size)  
+ssx<-sd^2*(25-1)
+xbar
+ssx
+
+
+x<-data.frame(size=c(30,65,100))
+p<-predict(toluca.mod, x, se.fit=TRUE, interval="confidence") 
+p
+
+ciw<-ci.reg(toluca.mod, x, type='w',alpha=0.1)  # Working hotelling 
+cib<-ci.reg(toluca.mod, x, type='b',alpha=0.1)  # Bonferroni mean
+cis<-ci.reg(toluca.mod, x, type='s',alpha=0.05)  # schefft 
+cign<-ci.reg(toluca.mod, x, type='gn',alpha=0.1) #Bonferroni single
+
+
+ciw
+cib
+cis
+cign
+```
