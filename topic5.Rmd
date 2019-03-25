@@ -1,6 +1,6 @@
 ---
-title: "Topic14-16"
-author: "tqin"
+title: "Assignment 4/5"
+author: "JStanley"
 output: html_document
 ---
 
@@ -12,34 +12,33 @@ knitr::opts_chunk$set(echo = TRUE)
 
 
 ```{r}
-bodyfat<-read.csv("bgsg.csv", header =TRUE, sep=",")
+bodyfat<-read.csv("bgsg.csv", header = TRUE, sep = ",")
 colnames(bodyfat)<-c("x1","x2","x3","y")
 
 plot(bodyfat)
 model1<-lm(y~x1, bodyfat)
 summary(model1)
-#Anova(model1,type=2)
+Anova(model1,type=2)
 model2<-lm(y~x2, bodyfat)
-#summary(model2)
-#anova(model2)
+summary(model2)
+anova(model2)
 
 
 
 model3<-lm(y~x1+x2, bodyfat)
 summary(model3)
-#anova(model3)
+anova(model3)
 model4<-lm(y~x1+x2+x3, bodyfat)
 summary(model4)
 anova(model4)
 
 
 
-#anova(model4)
-anova(model1, model4)  #reduced model: model3, full model model4)
-#anova(model1, model4) #reduced modeo: model1, full model model4
-#summary(lm(y~x1+x2+x3, bodyfat))
+anova(model4)
+anova(model1, model4)  #reduced model: model1, full model: model4)
+summary(lm(y~x1+x2+x3, bodyfat))
 
-#plot(model1)
+plot(model1)
 #qf(0.95,3,16)
 ```
 # Partial regression plots 
@@ -82,22 +81,22 @@ summary(model7)
 
 ```{r partial coefficient the type II (as in PartialR2) and type I (as in SLR)}
 model1<-lm(y~x1, bodyfat)
-#anova(model1)
-#summary(model1)
+anova(model1)
+summary(model1)
 typeIrs<-summary(model1)$r.squared
-#adjustedtypeIrs<-summary(model1)$adj.r.squared
-#typeIrs
-#adjustedtypeIrs
+adjustedtypeIrs<-summary(model1)$adj.r.squared
+typeIrs
+adjustedtypeIrs
 
 
 model2<-lm(y~x2, bodyfat)
 
-#anova(model2)
-#summary(model2)
+anova(model2)
+summary(model2)
 
 model3<-lm(y~x1+x2, bodyfat)
-#anova(model3)
-#summary(model3)
+anova(model3)
+summary(model3)
 
 model4<-lm(y~x1+x2+x3, bodyfat)
 anova(model4)
@@ -105,14 +104,14 @@ summary(model4)
 plot(model4)
 
 model5<-lm(y~x3+x2, bodyfat)
-#tail(anova(model1)$"Sum Sq",1)  #use the tail function to get just the SSE or residual which is the last one. 
-#anova(model3)
-#anova(model3)$"Sum Sq"
-#Anova(model3)
+tail(anova(model1)$"Sum Sq",1)  #use the tail function to get just the SSE or residual. 
+anova(model3)
+anova(model3)$"Sum Sq"
+Anova(model3)
 
 model6<-lm(y~x3, bodyfat)
-#anova(model6)
-#summary(model6)
+anova(model6)
+summary(model6)
 
 model7<-lm(y~x3+x2+x1, bodyfat)
 anova(model7)
@@ -134,13 +133,13 @@ PartialR2<-function(model.full, model.reduced){
   return(pR2)
 }
 
-#PartialR2(model4,model5) #computing X2 enterring X1 X3
+PartialR2(model4,model5) #compute X2 entering X1 and X3
 
 model8<-lm(y~x1+x3+x2,bodyfat)
 model9<-lm(y~x1+x3,bodyfat)
 PartialR2(model8,model9)
 
-#PartialR2(model4,model5) #computing X3 enterring X1 X2
+PartialR2(model4,model5) #compute X3 entering X1 and X2
 model10<-lm(y~x1+x2+x3,bodyfat)
 model11<-lm(y~x1+x2,bodyfat)
 PartialR2(model10,model11)
@@ -150,13 +149,13 @@ model12<-lm(y~x1+x3, bodyfat)
 anova(model12)
 ```
 
-```{r effects on extra sums of squares in multicollinearity}
+```{r effects of extra sums of squares in multicollinearity}
 model1<-lm(y~x2, bodyfat)
 summary(model1)
 anova(model1)
 
 model2<-lm(y~x1+x2, bodyfat)
-PartialR2(model2, model1)  # computer the coefficient of partial determination between Y and x1, when x2 is already in the model 
+PartialR2(model2, model1)  # compute the coefficient of partial determination between Y and x1, when x2 is already in the model 
 ```
 
 ```{r type II partial coefficient}
@@ -169,18 +168,18 @@ model4<-lm(y~x1+x2+x3, bodyfat)
 model5<-lm(y~x3+x2+x1,bodyfat)
 model6<-lm(y~x2+x1+x3, bodyfat)
 
-#anova(model1)
-#summary(model1)
-#anova(model2)
-#anova(model3)
-#anova(model31)
-#Anova(model3)
+anova(model1)
+summary(model1)
+anova(model2)
+anova(model3)
+anova(model31)
+Anova(model3)
 
-#anova(model4)
-#anova(model5)
-#anova(model6)
+anova(model4)
+anova(model5)
+anova(model6)
 Anova(model4)
-#Anova(model4)
+Anova(model4)
 
 ```
 
@@ -193,9 +192,8 @@ anova(model2)
 summary(model2)
 
 ```
-```{r standardized with lm.beta package}
 
-
+```{r using lm.beta package}
 library(lm.beta)
 
 model1<-lm(y~x1+x2+x3, bodyfat)
@@ -203,65 +201,61 @@ stdmodel1<-lm.beta(model1)
 summary(stdmodel1)
 summary(model1)
 ```
-```{r demo multicollinearity with the bodyfat data}
+
+```{r multicollinearity with the bodyfat data}
 plot(bodyfat)
 cor(bodyfat)
 model<-lm(x3~x1+x2, bodyfat)
 summary(model)
 anova(model)
 ```
-```{r effect of multicollearity demo}
+```{r effect of multicollearity}
 model1<-lm(y~x1, bodyfat)
 anova(model1)
-#summary(model1)
+summary(model1)
 model2<-lm(y~x2+x1, bodyfat)
 anova(model2)
-#summary(model2)
+summary(model2)
 model3<-lm(y~x1+x2+x3, bodyfat)
 anova(model3)
-#summary(model3)
+summary(model3)
 
 newdata1<-data.frame(x1=25)
 predict(model1,newdata1,interval="confidence", se.fit=TRUE)
 
 ```
 
-```{r test for outliers with studentized deleted residual}
+```{r test for outliers with deleted residual}
 model<-lm(y~x1+x2, data=bodyfat)
 residuals.lm(model)
 lm.influence(model)$hat   #calcualte the diagonal elements of the Hat matrix
 summary(model)
 t<-anova(model)
-t$`Sum Sq`[3]   #= calcuate the SSE
+t$`Sum Sq`[3]   #calcuate the SSE
 t$`Mean Sq`[3]
 lm.influence(model)
 ```
 
-```{r leverage plot, cook distance, also identify which case has the largest cooks distance, dfbetas Plot }
+```{r leverage plot, cook distance, and identify which case has the largest cooks distance, dfbetas Plot }
 library(car)
 model<-lm(y~x1+x2, data=bodyfat)
-#plot(model)
-#cooks.distance(model)
-#influencePlot(model)
+plot(model)
+cooks.distance(model)
+influencePlot(model)
 
-#dfbetas(model)[,2]
-#windows()  # this is for dfbetas for b1
+dfbetas(model)[,2]
 
-#with(bodyfat, plot(x1,dfbetas(model)[,2]))
-#identify(bodyfat$x1, dfbetas(model)[,2])
+windows()  # this is for dfbetas for b1
+
+with(bodyfat, plot(x1,dfbetas(model)[,2]))
+identify(bodyfat$x1, dfbetas(model)[,2])
 
 windows()  # this is for dfbetas for b2
 with(bodyfat, plot(x1,dfbetas(model)[,3]))
 identify(bodyfat$x1, dfbetas(model)[,3])
 
-
-#dfbetas(model)
-
-#windows()
-#with(bodyfat,plot(x1,cooks.distance(model)))
-#identify(bodyfat$x1,cooks.distance(model))
 ```
-```{r create diagnoatic plots, some plots doesnot come off automatically}
+```{r create diagnostic plots}
 model<-lm(y~x1+x2, data=bodyfat)
 plot(model, pch=18,col="red", which=c(7))
 oCooks<-sort(cooks.distance(model))
