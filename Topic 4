@@ -1,0 +1,282 @@
+---
+title: "Assignment 3"
+author: "JStanley"
+output:
+  html_document: default
+  word_document: default
+---
+
+```{r}
+week<-c(7.8,9,10.2,11,11.7)
+week
+y<-as.matrix(week)
+colnames(y)<-c("week")
+
+temp<-c(8,4,0,-4,-8)
+Intercept<-rep(1,5) 
+x<-cbind(Intercept,temp)
+x
+
+xty<-t(x)%*%y
+xty
+xtx<-t(x)%*%x
+xtxinv<-solve(xtx)
+xtxinv
+
+class(xty)
+class(xtxinv)
+
+betahat<-xtxinv %*% xty
+betahat
+
+```
+
+# The Hat matrix
+
+```{r}
+x
+xtxinv
+xty
+
+hat<-x%*%xtxinv%*%t(x)
+hat
+ide<-diag(5)
+ide-hat
+
+```
+
+# Find the vector of residuals y-yhat
+
+```{r }
+resid<-y-x%*%betahat
+resid
+t(resid)%*%resid
+
+
+model<-lm(week~temp)  #double check
+#model$residuals
+summary(model)
+anova(model)
+#vcov(model)
+```
+
+#Compute SST, SSE and SSR
+
+```{r }
+J<-matrix(1,nrow=5,ncol=5)
+SST<-t(y)%*%y-(1/5)*t(y)%*%J%*%y
+SST
+
+
+SSE<-t(resid)%*%resid
+SSE
+
+SSR<-SST-SSE
+SSR
+
+MSE<-SSE/3
+MSE
+```
+
+#Estimated variance-covariance matrix of b
+
+```{r }
+sigmaBeta<-MSE[1,1]*solve(t(x)%*%x)
+sigmaBeta
+solve(t(x)%*%x)
+```
+
+#Estimate Y and variance of yhat when X=-6
+
+```{r }
+newx<-rbind(1,-6)
+newx
+t(newx)
+yhat<-t(newx)%*%betahat
+yhat
+
+varYhat<-t(newx)%*%sigmaBeta%*%newx
+varYhat
+```
+
+#Double check prediction and variance of prediction
+
+```{r }
+new<-data.frame(temp=-6)
+predvals<-predict(model,newdata = new, interval="prediction", level=0.95, se.fit=TRUE)
+predvals
+```
+
+```{r}
+toluca<-read.table("C:/Users/Aidan/Desktop/RStudio/lectures/Toluca.txt", header=FALSE)
+colnames(toluca)<-c("size","hour")
+summary(toluca)
+length(toluca[,1])
+toluca$size
+```
+
+```{r}
+fmeans<-colMeans(toluca)
+fmeans
+```
+
+# compute variance matrix
+
+```{r }
+fcov<-crossprod(scale(toluca, center=TRUE, scale=FALSE))
+```
+
+#SXX= 19800
+#SYY=307203
+#SXY=70690
+
+```{r}
+xbar<-fmeans[1]
+ybar<-fmeans[2]
+SXX<-fcov[1,1]
+SXY<-fcov[1,2]
+SYY<-fcov[2,2]
+betahat1<-SXY/SXX
+betahat0<-ybar-betahat1*xbar
+print(c(betahat0=betahat0, betahat1=betahat1))
+SYY
+```
+
+#Estimate the varaiance of residual RSS, sample size = 25
+
+```{r }
+RSS<-SYY-SXY^2/SXX
+sigmahat2<-RSS/23
+sigmahat<-sqrt(sigmahat2)
+c(RSS=RSS, sigmahat2=sigmahat2,sigmahat=sigmahat)
+```
+
+
+```{r}
+toluca.mod<-lm(hour~size, toluca)
+summary(toluca.mod)
+toluca.mod$df.residual
+sigma(toluca.mod) #residual error
+```
+
+# variance and covariance of estimated effect, betahat0 and betahat1
+
+```{r }
+vcov(toluca.mod)
+cov2cor(vcov(toluca.mod))
+```
+
+#Estimated variance SEof beta1 and beta0
+
+```{r }
+sebeta<-sqrt(diag(vcov(toluca.mod)))
+sebeta
+          
+```
+
+```{r}
+dwaine<-read.csv("C:/Users/Aidan/Desktop/RStudio/lectures/dwaine.csv", header =TRUE, sep=",")
+n<-length(dwaine[,1])
+p<-length(dwaine)
+y<-as.matrix(dwaine$Y)
+
+intercept<-rep(1,n)
+x1<-dwaine$X1
+x2<-dwaine$X2
+x<-cbind(intercept,x1,x2)
+
+t(x)
+beta<-solve((t(x)%*%x))%*%t(x)%*%y
+beta
+```
+
+#SST, SSR,  SSE
+
+```{r }
+J<-matrix(1,nrow=n,ncol=n)
+e<-y-x%*%beta
+
+SST<-t(y)%*%y-(1/n)*t(y)%*%J%*%y
+SSE<-t(e)%*%e
+SSR<-SST-SSE
+MSE<-SSE/(n-p)
+SST
+SSE
+SSR
+
+n-p
+MSE<-SSE/(n-p)
+MSE
+
+MSR<-SSR/(p-1)
+MSR
+```
+
+#sigmabeta 
+
+```{r }
+sigmaBeta<-MSE[1,1]*solve(t(x)%*%x)
+sigmaBeta
+
+```
+```{r}
+dwa.mod<-lm(y~x1+x2, dwaine)
+summary(dwa.mod)
+anova(dwa.mod)
+vcov(dwa.mod)
+```
+
+# degree of freedom for T-dist
+
+```{r}
+
+qt(0.975,23)
+qt(0.9875,23)
+```
+
+```{r}
+mse<-rbind(c(121.16, 0),c(0, 121.16))
+mse
+xh1<-rbind(1,65.4, 17.6)
+xh1
+xh2<-rbind(1,66,20)
+xh<-cbind(xh1, xh2)
+xh
+t(xh)
+t(xh)%*%sigmaBeta%*%xh
+
+mse+t(xh)%*%sigmaBeta%*%xh
+```
+
+```{r}
+confint(dwa.mod,level=0.95)
+```
+
+```{r}
+library(ALSM)
+dwa.mod<-lm(y~x1+x2, dwaine)
+new<-data.frame(x1=c(65.4, 66), x2=c(17.6, 20))
+new
+new1<-data.frame(x1=65.4, x2=17.6)
+qt(0.9875,18)
+qt(0.975,18)
+
+predict(dwa.mod,new, se.fit=TRUE) #return the standard error of prediction
+predict(dwa.mod, new, interval="confidence")
+predict(dwa.mod, new, interval="predict")
+
+ci.reg(dwa.mod, new, type='m',alpha=0.05) #mean 
+ci.reg(dwa.mod, new, type='nm', m=2, alpha=0.05) #new m mean
+ci.reg(dwa.mod, new, type='gn',alpha=0.05) #Boneforrini Simultaneous CI for g new
+```
+
+```{r}
+a<-rbind(c(2, 5), c(4,1))
+b<-rbind(c(4,6), c(5,8))
+a%*%b
+y<-as.matrix(c(2,3))
+y
+t(y)%*%y
+j<-rbind(c(1, 1), c(1,1))
+t(y)%*%j
+```
